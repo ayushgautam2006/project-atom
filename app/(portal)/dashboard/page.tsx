@@ -42,7 +42,7 @@ export default async function DashboardPage() {
   // ── Employee dashboard ───────────────────────────────────────────────────────
   if (session.role === 'employee') {
     const goals = getGoalsByEmployee(session.userId);
-    const approved = goals.filter((g) => g.approved || g.status === 'approved');
+    const approved = goals.filter((g) => g.status === 'approved');
     const draft = goals.filter((g) => g.status === 'draft');
     const submitted = goals.filter((g) => g.status === 'submitted');
     const returned = goals.filter((g) => g.status === 'returned');

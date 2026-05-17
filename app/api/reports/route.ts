@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     uom: string;
     target: string;
     weightage: number;
-  } & Record<string, string>;
+  } & Record<string, string | number>;
 
   const rows: Row[] = [];
 

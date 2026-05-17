@@ -74,7 +74,7 @@ export async function PATCH(
       )
         continue;
       diff[key] = { from: goal[key], to: body[key] };
-      (updated as Record<string, unknown>)[key] = body[key];
+      (updated as any)[key] = body[key];
     }
   }
 
