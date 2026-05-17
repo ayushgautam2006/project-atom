@@ -1,0 +1,363 @@
+import type {
+  User,
+  Goal,
+  Achievement,
+  CheckIn,
+  AuditLog,
+  Cycle,
+} from './types';
+
+// ─── Simple password hash (XOR-fold, demo only) ───────────────────────────────
+function simpleHash(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return String(Math.abs(h));
+}
+
+export const DEMO_PASSWORD = 'demo123';
+const PW = simpleHash(DEMO_PASSWORD);
+
+// ─── Users ────────────────────────────────────────────────────────────────────
+export const SEED_USERS: User[] = [
+  {
+    id: 'u1',
+    name: 'Priya Sharma',
+    email: 'priya@company.com',
+    passwordHash: PW,
+    role: 'employee',
+    managerId: 'u3',
+    department: 'Sales',
+    avatarInitials: 'PS',
+  },
+  {
+    id: 'u2',
+    name: 'Rahul Verma',
+    email: 'rahul@company.com',
+    passwordHash: PW,
+    role: 'employee',
+    managerId: 'u3',
+    department: 'Operations',
+    avatarInitials: 'RV',
+  },
+  {
+    id: 'u3',
+    name: 'Arjun Mehta',
+    email: 'arjun@company.com',
+    passwordHash: PW,
+    role: 'manager',
+    managerId: null,
+    department: 'Sales',
+    avatarInitials: 'AM',
+  },
+  {
+    id: 'u4',
+    name: 'Neha Singh',
+    email: 'neha@company.com',
+    passwordHash: PW,
+    role: 'admin',
+    managerId: null,
+    department: 'HR',
+    avatarInitials: 'NS',
+  },
+];
+
+const now = new Date().toISOString();
+const d = (offset: number) =>
+  new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+
+// ─── Goals ────────────────────────────────────────────────────────────────────
+export const SEED_GOALS: Goal[] = [
+  // Priya — approved goals
+  {
+    id: 'g1',
+    employeeId: 'u1',
+    thrustArea: 'Revenue Growth',
+    title: 'Achieve Q4 Sales Target',
+    description: 'Drive revenue to hit the annual sales target of ₹50L',
+    uom: 'numeric_min',
+    target: '5000000',
+    weightage: 30,
+    status: 'approved',
+    isShared: false,
+    sharedBy: null,
+    isLocked: true,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g2',
+    employeeId: 'u1',
+    thrustArea: 'Customer Satisfaction',
+    title: 'Improve NPS Score',
+    description: 'Increase Net Promoter Score from 45 to 65',
+    uom: 'numeric_min',
+    target: '65',
+    weightage: 20,
+    status: 'approved',
+    isShared: false,
+    sharedBy: null,
+    isLocked: true,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g3',
+    employeeId: 'u1',
+    thrustArea: 'Operational Excellence',
+    title: 'Reduce Customer Response TAT',
+    description: 'Cut average response time from 48h to 24h',
+    uom: 'numeric_max',
+    target: '24',
+    weightage: 20,
+    status: 'approved',
+    isShared: false,
+    sharedBy: null,
+    isLocked: true,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g4',
+    employeeId: 'u1',
+    thrustArea: 'Safety & Sustainability',
+    title: 'Zero Safety Incidents',
+    description: 'Maintain zero safety incidents in the workspace',
+    uom: 'zero',
+    target: '0',
+    weightage: 15,
+    status: 'approved',
+    isShared: true,
+    sharedBy: 'u4',
+    isLocked: true,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g5',
+    employeeId: 'u1',
+    thrustArea: 'People & Culture',
+    title: 'Complete Leadership Training',
+    description: 'Finish the L2 leadership program by Q3',
+    uom: 'timeline',
+    target: d(60),
+    weightage: 15,
+    status: 'approved',
+    isShared: false,
+    sharedBy: null,
+    isLocked: true,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  // Priya — draft goal
+  {
+    id: 'g6',
+    employeeId: 'u1',
+    thrustArea: 'Digital Transformation',
+    title: 'Adopt CRM Tool',
+    description: 'Onboard team to new CRM and log 100% interactions',
+    uom: 'numeric_min',
+    target: '100',
+    weightage: 0,
+    status: 'draft',
+    isShared: false,
+    sharedBy: null,
+    isLocked: false,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+
+  // Rahul — submitted goals
+  {
+    id: 'g7',
+    employeeId: 'u2',
+    thrustArea: 'Cost Optimization',
+    title: 'Reduce Procurement Costs',
+    description: 'Cut vendor costs by 15% through renegotiation',
+    uom: 'numeric_max',
+    target: '15',
+    weightage: 35,
+    status: 'submitted',
+    isShared: false,
+    sharedBy: null,
+    isLocked: false,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g8',
+    employeeId: 'u2',
+    thrustArea: 'Operational Excellence',
+    title: 'Improve Process Efficiency',
+    description: 'Increase throughput by 20% using Lean methodology',
+    uom: 'numeric_min',
+    target: '20',
+    weightage: 35,
+    status: 'submitted',
+    isShared: false,
+    sharedBy: null,
+    isLocked: false,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g9',
+    employeeId: 'u2',
+    thrustArea: 'Safety & Sustainability',
+    title: 'Zero Safety Incidents',
+    description: 'Maintain zero safety incidents in the workspace',
+    uom: 'zero',
+    target: '0',
+    weightage: 15,
+    status: 'submitted',
+    isShared: true,
+    sharedBy: 'u4',
+    isLocked: false,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+  {
+    id: 'g10',
+    employeeId: 'u2',
+    thrustArea: 'People & Culture',
+    title: 'Cross-functional Collaboration Projects',
+    description: 'Lead at least 2 cross-team projects this cycle',
+    uom: 'numeric_min',
+    target: '2',
+    weightage: 15,
+    status: 'submitted',
+    isShared: false,
+    sharedBy: null,
+    isLocked: false,
+    returnNote: null,
+    createdAt: now,
+    updatedAt: now,
+  },
+];
+
+// ─── Achievements ─────────────────────────────────────────────────────────────
+export const SEED_ACHIEVEMENTS: Achievement[] = [
+  {
+    id: 'a1',
+    goalId: 'g1',
+    quarter: 'Q1',
+    actualValue: '1200000',
+    status: 'on_track',
+    score: 1200000 / 5000000,
+    updatedAt: now,
+  },
+  {
+    id: 'a2',
+    goalId: 'g2',
+    quarter: 'Q1',
+    actualValue: '52',
+    status: 'on_track',
+    score: 52 / 65,
+    updatedAt: now,
+  },
+  {
+    id: 'a3',
+    goalId: 'g3',
+    quarter: 'Q1',
+    actualValue: '28',
+    status: 'on_track',
+    score: 24 / 28,
+    updatedAt: now,
+  },
+  {
+    id: 'a4',
+    goalId: 'g4',
+    quarter: 'Q1',
+    actualValue: '0',
+    status: 'completed',
+    score: 1,
+    updatedAt: now,
+  },
+];
+
+// ─── Check-ins ────────────────────────────────────────────────────────────────
+export const SEED_CHECKINS: CheckIn[] = [
+  {
+    id: 'c1',
+    managerId: 'u3',
+    employeeId: 'u1',
+    quarter: 'Q1',
+    comment:
+      'Priya is off to a strong start — revenue at 24% of annual target by end of Q1. NPS has room to grow. Discussed customer outreach strategy for Q2.',
+    createdAt: now,
+  },
+];
+
+// ─── Audit Logs ───────────────────────────────────────────────────────────────
+export const SEED_AUDIT_LOGS: AuditLog[] = [
+  {
+    id: 'al1',
+    entityType: 'goal',
+    entityId: 'g1',
+    action: 'approved',
+    changedBy: 'u3',
+    changedAt: now,
+    diff: JSON.stringify({ status: { from: 'submitted', to: 'approved' } }),
+  },
+  {
+    id: 'al2',
+    entityType: 'goal',
+    entityId: 'g4',
+    action: 'shared_goal_pushed',
+    changedBy: 'u4',
+    changedAt: now,
+    diff: JSON.stringify({ sharedTo: ['u1', 'u2'] }),
+  },
+];
+
+// ─── Cycles ───────────────────────────────────────────────────────────────────
+export const SEED_CYCLES: Cycle[] = [
+  {
+    id: 'cy1',
+    name: 'FY 2025-26 Goal Setting',
+    phase: 'goal_setting',
+    openDate: '2025-05-01',
+    closeDate: '2025-06-30',
+    isActive: true,
+  },
+  {
+    id: 'cy2',
+    name: 'FY 2025-26 Q1 Check-in',
+    phase: 'q1_checkin',
+    openDate: '2025-07-01',
+    closeDate: '2025-07-31',
+    isActive: true,
+  },
+  {
+    id: 'cy3',
+    name: 'FY 2025-26 Q2 Check-in',
+    phase: 'q2_checkin',
+    openDate: '2025-10-01',
+    closeDate: '2025-10-31',
+    isActive: false,
+  },
+  {
+    id: 'cy4',
+    name: 'FY 2025-26 Q3 Check-in',
+    phase: 'q3_checkin',
+    openDate: '2026-01-01',
+    closeDate: '2026-01-31',
+    isActive: false,
+  },
+  {
+    id: 'cy5',
+    name: 'FY 2025-26 Annual Review',
+    phase: 'q4_annual',
+    openDate: '2026-03-01',
+    closeDate: '2026-04-30',
+    isActive: false,
+  },
+];
