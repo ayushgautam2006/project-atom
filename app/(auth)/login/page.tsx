@@ -138,72 +138,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Demo credentials */}
-        <div
-          style={{
-            marginTop: 36,
-            padding: 16,
-            background: '#f8f9fc',
-            borderRadius: 10,
-            border: '1px solid #e5e7eb',
-          }}
-        >
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
-            Demo Credentials
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {[
-              { role: 'Employee', email: 'priya@company.com', color: '#eff6ff', text: '#1d4ed8' },
-              { role: 'Employee', email: 'rahul@company.com', color: '#eff6ff', text: '#1d4ed8' },
-              { role: 'Manager', email: 'arjun@company.com', color: '#f0fdf4', text: '#15803d' },
-              { role: 'Admin/HR', email: 'neha@company.com', color: '#faf5ff', text: '#7e22ce' },
-            ].map((d) => (
-              <button
-                key={d.email}
-                type="button"
-                onClick={() => { setEmail(d.email); setPassword('demo123'); }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '6px 10px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'background 0.1s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f4f6')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <span
-                  style={{
-                    fontSize: '0.66rem',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: 999,
-                    background: d.color,
-                    color: d.text,
-                    minWidth: 60,
-                    textAlign: 'center',
-                    flexShrink: 0,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  {d.role}
-                </span>
-                <span style={{ fontSize: '0.8rem', color: '#374151', fontFamily: 'monospace' }}>
-                  {d.email}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginLeft: 'auto' }}>
-                  demo123
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+
       </div>
 
       {/* ── Right hero panel ── */}
