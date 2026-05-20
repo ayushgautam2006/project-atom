@@ -4,7 +4,7 @@ import { getAllAuditLogs, getUserById } from '@/app/_lib/store';
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'admin')
+  if (session.user.role !== 'admin')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const url = new URL(request.url);

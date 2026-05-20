@@ -16,12 +16,12 @@ import {
 export async function GET() {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'manager' && session.role !== 'admin')
+  if (session.user.role !== 'manager' && session.user.role !== 'admin')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const goals =
-    session.role === 'manager'
-      ? getGoalsByManager(session.userId).filter((g) => g.status === 'submitted')
+    session.user.role === 'manager'
+      ? getGoalsByManager(session.user.id).filter((g) => g.status === 'submitted')
       : // Admin sees all submitted
         (await import('@/app/_lib/store')).getAllGoals().filter((g) => g.status === 'submitted');
 
@@ -31,7 +31,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'manager' && session.role !== 'admin')
+  if (session.user.role !== 'manager' && session.user.role !== 'admin')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       entityType: 'goal',
       entityId: goalId,
       action,
-      changedBy: session.userId,
+      changedBy: session.user.id,
       changedAt: now,
       diff: JSON.stringify({ status: { from: goal.status, to: updated.status } }),
     });
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
         entityType: 'goal',
         entityId: g.id,
         action: 'approved',
-        changedBy: session.userId,
+        changedBy: session.user.id,
         changedAt: now,
         diff: JSON.stringify({ status: { from: 'submitted', to: 'approved' } }),
       });

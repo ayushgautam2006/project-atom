@@ -29,8 +29,8 @@ export async function GET(request: Request) {
   }
 
   // Manager/admin: all achievements
-  if (session.role === 'employee') {
-    const goals = getGoalsByEmployee(session.userId);
+  if (session.user.role === 'employee') {
+    const goals = getGoalsByEmployee(session.user.id);
     const achs = goals.flatMap((g) => getAchievementsByGoal(g.id));
     return Response.json({ ok: true, data: achs });
   }
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'employee')
+  if (session.user.role !== 'employee')
     return Response.json({ ok: false, error: 'Only employees can log achievements.' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
   const goal = getGoalById(goalId);
   if (!goal) return Response.json({ ok: false, error: 'Goal not found.' }, { status: 404 });
-  if (goal.employeeId !== session.userId)
+  if (goal.employeeId !== session.user.id)
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
   if (!goal.isLocked)
     return Response.json({ ok: false, error: 'Goal must be approved before logging achievement.' }, { status: 400 });
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     entityType: 'achievement',
     entityId: ach.id,
     action: existing ? 'updated' : 'created',
-    changedBy: session.userId,
+    changedBy: session.user.id,
     changedAt: now,
     diff: JSON.stringify({ quarter, actualValue, status, score: ach.score }),
   });

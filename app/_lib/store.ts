@@ -85,6 +85,11 @@ export function getTeamOf(managerId: string): User[] {
   return [...store.users.values()].filter((u) => u.managerId === managerId);
 }
 
+export function createUser(user: User): User {
+  store.users.set(user.id, user);
+  return user;
+}
+
 // ─── Goal helpers ─────────────────────────────────────────────────────────────
 
 export function getGoalById(id: string): Goal | undefined {

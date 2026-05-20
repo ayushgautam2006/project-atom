@@ -15,7 +15,7 @@ import type { Goal } from '@/app/_lib/types';
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'admin' && session.role !== 'manager')
+  if (session.user.role !== 'admin' && session.user.role !== 'manager')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       weightage: weightage !== undefined ? Number(weightage) : 10,
       status: 'draft',
       isShared: true,
-      sharedBy: session.userId,
+      sharedBy: session.user.id,
       isLocked: false,
       returnNote: null,
       createdAt: now,
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
     entityType: 'goal',
     entityId: baseGoalId,
     action: 'shared_goal_pushed',
-    changedBy: session.userId,
+    changedBy: session.user.id,
     changedAt: now,
     diff: JSON.stringify({ sharedTo: employeeIds }),
   });

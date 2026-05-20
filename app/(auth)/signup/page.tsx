@@ -5,34 +5,54 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isPending, setIsPending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    if (!name.trim()) {
+      setError('Name is required.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setIsPending(true);
 
     try {
       const result = await signIn('credentials', {
         email,
         password,
+        name,
+        action: 'signup',
         redirect: false,
       });
 
       if (!result?.ok) {
-        setError(result?.error || 'Login failed. Please try again.');
+        setError(result?.error || 'Sign up failed. Please try again.');
         setIsPending(false);
         return;
       }
 
       router.replace('/dashboard');
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err?.message || 'An error occurred. Please try again.');
       setIsPending(false);
     }
   }
@@ -83,10 +103,10 @@ export default function LoginPage() {
         {/* Heading */}
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827', marginBottom: 6, letterSpacing: '-0.02em' }}>
-            Welcome back
+            Create account
           </h1>
           <p style={{ fontSize: '0.9rem', color: '#6b7280' }}>
-            Sign in with your work email to continue.
+            Join Project Atom and start setting goals.
           </p>
         </div>
 
@@ -99,7 +119,22 @@ export default function LoginPage() {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }} >
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="form-group">
+            <label htmlFor="name" className="form-label text-black/30">Full Name</label>
+            <input
+              id="name"
+              type="text"
+              className="m-3 form-input text-black/20"
+              placeholder=" John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              autoComplete="name"
+              autoFocus
+            />
+          </div>
+
           <div className="form-group">
             <label htmlFor="email" className="form-label text-black/30">Email</label>
             <input
@@ -111,7 +146,6 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              autoFocus
             />
           </div>
 
@@ -125,33 +159,47 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete="current-password"
+              autoComplete="new-password"
             />
           </div>
 
-            <button
-              id="login-btn"
-              type="submit"
-              className="ml-25 mr-25 btn btn-primary btn-sm bg-blue-400 hover:bg-blue-500 rounded-2xl border-2 border-transparent focus:border-blue-600 outline-none transition-all hover:cursor-pointer"
-              disabled={isPending}
-              style={{ marginTop: 4 }}
-            >
+          <div className="form-group">
+            <label htmlFor="confirmPassword" className="form-label text-black/30">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              className="m-3 form-input text-black/20"
+              placeholder=" ••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              autoComplete="new-password"
+            />
+          </div>
+
+          <button
+            id="signup-btn"
+            type="submit"
+            className="ml-25 mr-25 btn btn-primary btn-sm bg-blue-400 hover:bg-blue-500 rounded-2xl border-2 border-transparent focus:border-blue-600 outline-none transition-all hover:cursor-pointer"
+            disabled={isPending}
+            style={{ marginTop: 4 }}
+          >
             {isPending ? (
               <>
                 <span className="spinner" style={{ width: 16, height: 16 }} />
-                Signing in…
+                Creating account…
               </>
             ) : (
-              'Sign In'
+              'Sign Up'
             )}
           </button>
         </form>
 
-        {/* Link to signup */}
+        {/* Link to login */}
         <div style={{ marginTop: 24, textAlign: 'center', fontSize: '0.9rem', color: '#6b7280' }}>
-          Don't have an account?{' '}
+          Already have an account?{' '}
           <Link
-            href="/signup"
+            href="/login"
             style={{
               color: '#4f46e5',
               textDecoration: 'none',
@@ -161,7 +209,7 @@ export default function LoginPage() {
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
             onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
           >
-            Sign Up
+            Sign In
           </Link>
         </div>
       </div>
@@ -214,7 +262,7 @@ export default function LoginPage() {
               filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.3))',
             }}
           >
-            🎯
+            🚀
           </div>
 
           <h2
@@ -227,7 +275,7 @@ export default function LoginPage() {
               letterSpacing: '-0.02em',
             }}
           >
-            Set goals.<br />Track progress.<br />Drive results.
+            Get started today.<br />Set meaningful goals.<br />Track your impact.
           </h2>
 
           <p
@@ -238,20 +286,19 @@ export default function LoginPage() {
               marginBottom: 36,
             }}
           >
-            Project Atom brings structure and visibility to your organisation's
-            goal-setting cycle — from creation to approval, quarterly check-ins
-            to final appraisal.
+            Join your team on Project Atom and unlock a structured approach to
+            goal-setting and performance tracking.
           </p>
 
           {/* Feature pills */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
             {[
-              '✅ Manager Approval Workflow',
-              '📊 Quarterly Check-ins',
-              '🔗 Shared Team Goals',
-              '📈 Progress Scoring',
-              '📋 Audit Trail',
-              '📤 CSV Reports',
+              '✅ Easy Setup',
+              '📊 Real-time Tracking',
+              '🔗 Team Collaboration',
+              '📈 Progress Insights',
+              '🎯 Goal Alignment',
+              '📤 Export Reports',
             ].map((f) => (
               <span
                 key={f}

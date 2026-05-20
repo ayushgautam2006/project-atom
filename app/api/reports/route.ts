@@ -12,7 +12,7 @@ const QUARTERS: Quarter[] = ['Q1', 'Q2', 'Q3', 'Q4'];
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'admin' && session.role !== 'manager')
+  if (session.user.role !== 'admin' && session.user.role !== 'manager')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const url = new URL(request.url);

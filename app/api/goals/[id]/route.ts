@@ -22,7 +22,7 @@ export async function GET(
   if (!goal) return Response.json({ ok: false, error: 'Goal not found.' }, { status: 404 });
 
   // Access control
-  if (session.role === 'employee' && goal.employeeId !== session.userId)
+  if (session.user.role === 'employee' && goal.employeeId !== session.user.id)
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   return Response.json({ ok: true, data: goal });
@@ -40,13 +40,13 @@ export async function PATCH(
   if (!goal) return Response.json({ ok: false, error: 'Goal not found.' }, { status: 404 });
 
   // Lock check (only admin can edit locked goals)
-  if (goal.isLocked && session.role !== 'admin') {
+  if (goal.isLocked && session.user.role !== 'admin') {
     return Response.json({ ok: false, error: 'Goal is locked. Contact Admin to unlock.' }, { status: 403 });
   }
 
   // Employee can only edit their own draft/returned goals
-  if (session.role === 'employee') {
-    if (goal.employeeId !== session.userId)
+  if (session.user.role === 'employee') {
+    if (goal.employeeId !== session.user.id)
       return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
     if (!['draft', 'returned'].includes(goal.status))
       return Response.json({ ok: false, error: 'Cannot edit a submitted or approved goal.' }, { status: 403 });
@@ -54,9 +54,9 @@ export async function PATCH(
 
   const body = await request.json().catch(() => ({}));
   const allowed: (keyof Goal)[] =
-    session.role === 'admin'
+    session.user.role === 'admin'
       ? ['thrustArea', 'title', 'description', 'uom', 'target', 'weightage', 'status', 'isLocked']
-      : session.role === 'manager'
+      : session.user.role === 'manager'
       ? ['weightage', 'target', 'status', 'returnNote']
       : ['thrustArea', 'title', 'description', 'uom', 'target', 'weightage'];
 
@@ -69,7 +69,7 @@ export async function PATCH(
       // Shared goal: employees/managers cannot change title/target
       if (
         goal.isShared &&
-        session.role !== 'admin' &&
+        session.user.role !== 'admin' &&
         (key === 'title' || key === 'target')
       )
         continue;
@@ -84,7 +84,7 @@ export async function PATCH(
     entityType: 'goal',
     entityId: id,
     action: 'updated',
-    changedBy: session.userId,
+    changedBy: session.user.id,
     changedAt: now,
     diff: JSON.stringify(diff),
   });
@@ -103,12 +103,12 @@ export async function DELETE(
   const goal = getGoalById(id);
   if (!goal) return Response.json({ ok: false, error: 'Goal not found.' }, { status: 404 });
 
-  if (session.role === 'employee') {
-    if (goal.employeeId !== session.userId)
+  if (session.user.role === 'employee') {
+    if (goal.employeeId !== session.user.id)
       return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
     if (goal.status !== 'draft')
       return Response.json({ ok: false, error: 'Can only delete draft goals.' }, { status: 403 });
-  } else if (session.role !== 'admin') {
+  } else if (session.user.role !== 'admin') {
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
   }
 

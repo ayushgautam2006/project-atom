@@ -1,8 +1,6 @@
-import { cookies } from 'next/headers';
+import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import type { Session, Role } from './types';
-
-const SESSION_COOKIE = 'portal_session';
+import type { Role } from './types';
 
 // ─── Simple password hash (must match seed.ts) ────────────────────────────────
 export function simpleHash(s: string): string {
@@ -12,39 +10,15 @@ export function simpleHash(s: string): string {
   return String(Math.abs(h));
 }
 
-// ─── Read session from cookie ─────────────────────────────────────────────────
-export async function getSession(): Promise<Session | null> {
-  const jar = await cookies();
-  const raw = jar.get(SESSION_COOKIE)?.value;
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as Session;
-  } catch {
-    return null;
-  }
+// ─── Get session using NextAuth ───────────────────────────────────────────────
+export async function getSession() {
+  return auth();
 }
 
 // ─── Require session (redirect to login if absent / wrong role) ───────────────
-export async function requireSession(role?: Role): Promise<Session> {
-  const session = await getSession();
+export async function requireSession(role?: Role) {
+  const session = await auth();
   if (!session) redirect('/login');
-  if (role && session.role !== role) redirect('/dashboard');
+  if (role && (session.user as any)?.role !== role) redirect('/dashboard');
   return session;
-}
-
-// ─── Set session cookie ───────────────────────────────────────────────────────
-export async function setSession(session: Session): Promise<void> {
-  const jar = await cookies();
-  jar.set(SESSION_COOKIE, JSON.stringify(session), {
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 8, // 8 hours
-  });
-}
-
-// ─── Clear session cookie ─────────────────────────────────────────────────────
-export async function clearSession(): Promise<void> {
-  const jar = await cookies();
-  jar.delete(SESSION_COOKIE);
 }

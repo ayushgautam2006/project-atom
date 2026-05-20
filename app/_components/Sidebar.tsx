@@ -1,7 +1,8 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import type { Session } from '@/app/_lib/types';
+import { signOut } from 'next-auth/react';
+import type { Session } from 'next-auth';
 
 interface NavItem {
   label: string;
@@ -52,14 +53,14 @@ const ROLE_LABEL: Record<string, string> = {
   admin: 'Admin / HR',
 };
 
-export default function Sidebar({ session }: { session: Session }) {
+export default function Sidebar({ session }: { session: Session | null }) {
   const pathname = usePathname();
   const router = useRouter();
-  const nav = getNav(session.role);
+  const role = (session?.user as any)?.role || 'employee';
+  const nav = getNav(role);
 
   async function handleLogout() {
-    await fetch('/api/auth', { method: 'DELETE' });
-    router.replace('/login');
+    await signOut({ redirectTo: '/login' });
   }
 
   return (
@@ -102,15 +103,15 @@ export default function Sidebar({ session }: { session: Session }) {
       <div className="sidebar-footer">
         <div className="user-pill">
           <div className="user-avatar">
-            {session.name
-              .split(' ')
+            {session?.user?.name
+              ?.split(' ')
               .map((n) => n[0])
               .join('')
-              .slice(0, 2)}
+              .slice(0, 2) || 'AA'}
           </div>
           <div className="user-info">
-            <div className="user-name">{session.name}</div>
-            <div className="user-role">{ROLE_LABEL[session.role]}</div>
+            <div className="user-name">{session?.user?.name || 'User'}</div>
+            <div className="user-role">{ROLE_LABEL[role]}</div>
           </div>
         </div>
         <button

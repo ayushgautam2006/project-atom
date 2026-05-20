@@ -11,7 +11,7 @@ import type { Quarter } from '@/app/_lib/types';
 export async function GET(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'manager' && session.role !== 'admin')
+  if (session.user.role !== 'manager' && session.user.role !== 'admin')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const url = new URL(request.url);
@@ -23,13 +23,13 @@ export async function GET(request: Request) {
     return Response.json({ ok: true, data: ci ?? null });
   }
 
-  return Response.json({ ok: true, data: getCheckInsByManager(session.userId) });
+  return Response.json({ ok: true, data: getCheckInsByManager(session.user.id) });
 }
 
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'manager')
+  if (session.user.role !== 'manager')
     return Response.json({ ok: false, error: 'Only managers can log check-ins.' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: 'Missing required fields.' }, { status: 400 });
 
   // Verify the employee is on the manager's team
-  const team = getTeamOf(session.userId);
+  const team = getTeamOf(session.user.id);
   if (!team.some((u) => u.id === employeeId))
     return Response.json({ ok: false, error: 'Employee not on your team.' }, { status: 403 });
 
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
   const ci = {
     id: existing?.id ?? nextId('checkin'),
-    managerId: session.userId,
+    managerId: session.user.id,
     employeeId,
     quarter,
     comment: comment.trim(),

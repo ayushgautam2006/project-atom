@@ -37,11 +37,11 @@ function StatCard({
 
 export default async function DashboardPage() {
   const session = await getSession();
-  if (!session) return null;
+  if (!session || !session.user) return null;
 
   // ── Employee dashboard ───────────────────────────────────────────────────────
-  if (session.role === 'employee') {
-    const goals = getGoalsByEmployee(session.userId);
+  if (session.user.role === 'employee') {
+    const goals = getGoalsByEmployee(session.user.id);
     const approved = goals.filter((g) => g.status === 'approved');
     const draft = goals.filter((g) => g.status === 'draft');
     const submitted = goals.filter((g) => g.status === 'submitted');
@@ -69,7 +69,7 @@ export default async function DashboardPage() {
       <div className="animate-fade-in">
         <div className="page-header">
           <div>
-            <h1 className="page-title">Good to see you, {session.name.split(' ')[0]}! 👋</h1>
+            <h1 className="page-title">Good to see you, {session.user.name.split(' ')[0]}! 👋</h1>
             <p className="page-subtitle">Here's your goal progress at a glance.</p>
           </div>
         </div>
@@ -183,12 +183,12 @@ export default async function DashboardPage() {
   }
 
   // ── Manager dashboard ────────────────────────────────────────────────────────
-  if (session.role === 'manager') {
-    const team = getTeamOf(session.userId);
-    const teamGoals = getGoalsByManager(session.userId);
+  if (session.user.role === 'manager') {
+    const team = getTeamOf(session.user.id);
+    const teamGoals = getGoalsByManager(session.user.id);
     const pending = teamGoals.filter((g) => g.status === 'submitted');
     const approved = teamGoals.filter((g) => g.status === 'approved');
-    const checkIns = getCheckInsByManager(session.userId);
+    const checkIns = getCheckInsByManager(session.user.id);
 
     return (
       <div className="animate-fade-in">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/app/_lib/auth';
+import { Providers } from '@/app/_components/Providers';
 import Sidebar from '@/app/_components/Sidebar';
 import '../globals.css';
 
@@ -20,8 +21,10 @@ export default async function PortalLayout({
   return (
     <html lang="en">
       <body>
-        <Sidebar session={session} />
-        <main className="portal-main">{children}</main>
+        <Providers>
+          <Sidebar session={session} />
+          <main className="portal-main">{children}</main>
+        </Providers>
       </body>
     </html>
   );

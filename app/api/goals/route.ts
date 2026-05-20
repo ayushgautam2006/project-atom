@@ -16,10 +16,10 @@ export async function GET(request: Request) {
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
 
   let goals: Goal[];
-  if (session.role === 'employee') {
-    goals = getGoalsByEmployee(session.userId);
-  } else if (session.role === 'manager') {
-    goals = getGoalsByManager(session.userId);
+  if (session.user.role === 'employee') {
+    goals = getGoalsByEmployee(session.user.id);
+  } else if (session.user.role === 'manager') {
+    goals = getGoalsByManager(session.user.id);
   } else {
     goals = getAllGoals();
   }
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'employee') {
+  if (session.user.role !== 'employee') {
     return Response.json({ ok: false, error: 'Only employees can create goals.' }, { status: 403 });
   }
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: 'Minimum weightage per goal is 10%.' }, { status: 400 });
   }
 
-  const existing = gbe(session.userId).filter((g) => g.status !== 'returned');
+  const existing = gbe(session.user.id).filter((g) => g.status !== 'returned');
   if (existing.length >= 8) {
     return Response.json({ ok: false, error: 'Maximum 8 goals allowed.' }, { status: 400 });
   }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const now = new Date().toISOString();
   const goal: Goal = {
     id: nextId('goal'),
-    employeeId: session.userId,
+    employeeId: session.user.id,
     thrustArea,
     title,
     description: description ?? '',
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     entityType: 'goal',
     entityId: goal.id,
     action: 'created',
-    changedBy: session.userId,
+    changedBy: session.user.id,
     changedAt: now,
     diff: JSON.stringify({ status: { to: 'draft' } }),
   });

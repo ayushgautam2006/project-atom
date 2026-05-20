@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'admin')
+  if (session.user.role !== 'admin')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     entityType: 'cycle',
     entityId: cycle.id,
     action: 'created',
-    changedBy: session.userId,
+    changedBy: session.user.id,
     changedAt: now,
     diff: JSON.stringify(cycle),
   });
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await getSession();
   if (!session) return Response.json({ ok: false, error: 'Unauthorized.' }, { status: 401 });
-  if (session.role !== 'admin')
+  if (session.user.role !== 'admin')
     return Response.json({ ok: false, error: 'Forbidden.' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
@@ -68,7 +68,7 @@ export async function PATCH(request: Request) {
     entityType: 'cycle',
     entityId: id,
     action: 'updated',
-    changedBy: session.userId,
+    changedBy: session.user.id,
     changedAt: new Date().toISOString(),
     diff: JSON.stringify(updates),
   });
